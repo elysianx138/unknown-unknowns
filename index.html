@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>叫不出名字的东西 · 独立开发者扫盲词典</title>
+<meta name="description" content="65 个独立开发者应该认识、但往往叫不出名字的词。按“第一次撞上”的事件分组，不按学科。">
+<meta property="og:title" content="叫不出名字的东西 · Unknown Unknowns">
+<meta property="og:description" content="你不知道一个词，就不会去搜它；不搜它，AI 也帮不了你。65 个词的扫盲清单。">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="light dark">
+<script>
+  // 先定主题，避免闪白
+  (function () {
+    var t = localStorage.getItem('uu.theme') || 'auto';
+    var dark = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  })();
+</script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23a84a1e'/%3E%3Ctext x='32' y='46' font-size='38' font-family='monospace' text-anchor='middle' fill='%23fbfaf6'%3E%3F%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <h1>叫不出名字的东西</h1>
+    <span class="sub">Unknown Unknowns</span>
+  </div>
+  <div class="search">
+    <input id="q" type="search" placeholder="搜词、搜后果、搜你卡住的那件事" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <kbd>/</kbd>
+  </div>
+  <button id="theme" class="ghost" title="切换主题" aria-label="切换主题">◐</button>
+  <a class="ghost repo" href="https://github.com/elysianx138/unknown-unknowns" target="_blank" rel="noopener">GitHub ↗</a>
+</header>
+
+<main>
+  <aside class="side">
+    <div class="panel">
+      <div class="prog">
+        <div class="prog-top">
+          <span id="progText">—</span>
+          <span id="progPct" class="muted">—</span>
+        </div>
+        <div class="bar"><i id="progBar"></i></div>
+      </div>
+      <div class="legend">
+        <button class="lg" data-filter="1"><b class="dot d1"></b>没听过 <span id="c1">0</span></button>
+        <button class="lg" data-filter="2"><b class="dot d2"></b>说不清 <span id="c2">0</span></button>
+        <button class="lg" data-filter="3"><b class="dot d3"></b>会了 <span id="c3">0</span></button>
+      </div>
+      <label class="switch"><input type="checkbox" id="onlyTodo"> 只看还没扫的</label>
+    </div>
+
+    <nav id="groups" aria-label="分组"></nav>
+
+    <div class="panel foot">
+      <p class="muted small">扫盲 ≠ 学会。知道词、知道它在哪咬你，不等于会做。</p>
+      <button id="reset" class="ghost small-btn">重置我的标注</button>
+    </div>
+  </aside>
+
+  <section id="list" aria-live="polite"></section>
+</main>
+
+<noscript><div class="empty" style="margin:24px">
+  <b>需要 JavaScript</b>这个页面在浏览器里解析仓库的 README.md 来渲染，关掉 JS 就只剩一张空表。
+</div></noscript>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
