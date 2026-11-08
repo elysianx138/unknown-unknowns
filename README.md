@@ -53,14 +53,14 @@
 - **是什么**：域名到 IP 的那层"电话簿"。A 记录直接写 IP；CNAME 指向另一个域名，用来把子域交给 CDN 或平台托管。改完不是立刻生效，要等 TTL。
 - **什么时候会遇到**：换服务器、绑自定义域名、接 CDN、把域名从一家注册商挪到另一家。
 - **不知道会怎样**：白屏或还跳旧地址，你先怀疑代码，查两天才发现解析还指着早就下线的那台机器。
-- **怎么查**：搜 `DNS A记录 CNAME 区别` · [Cloudflare: 什么是 DNS](https://www.cloudflare.com/learning/dns/what-is-dns/)
+- **怎么查**：搜 `DNS A记录 CNAME 区别` · [MDN: DNS](https://developer.mozilla.org/en-US/docs/Glossary/DNS)
 - **关联**：TTL、CDN 强缓存、HTTPS 证书链
 
 ### TTL
 - **是什么**：一条解析结果在别人机器上缓存多久（秒）。它不是"生效时间"，是"最坏情况下多久之后，所有人都会看到新值"。
 - **什么时候会遇到**：切服务器、切 CDN、换域名的那一天。
 - **不知道会怎样**：反复改来改去，一半用户看到新的、一半看到旧的，你以为是自己又改错了。
-- **怎么查**：搜 `DNS TTL 设置多少合适` · [Cloudflare: TTL](https://www.cloudflare.com/learning/cdn/glossary/time-to-live-ttl/)
+- **怎么查**：搜 `DNS TTL 设置多少合适` · [MDN: TTL](https://developer.mozilla.org/en-US/docs/Glossary/TTL)
 - **关联**：DNS / A 记录 / CNAME、CDN 强缓存
 
 ### HTTPS / 证书链
@@ -519,7 +519,7 @@
 - **是什么**：在流量到达你的服务器之前拦掉攻击流量。Cloudflare 免费版就能挡掉大部分常见扫描和小规模洪水。
 - **什么时候会遇到**：小站也会被扫描器扫；被扫就挂的时候。
 - **不知道会怎样**：站点被打挂，你还以为是自己代码的 bug。
-- **怎么查**：搜 `Cloudflare 免费 WAF` · [Cloudflare: 什么是 DDoS](https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/)
+- **怎么查**：搜 `Cloudflare 免费 WAF` · [Wikipedia: DoS 攻击](https://en.wikipedia.org/wiki/Denial-of-service_attack)
 - **关联**：限流 / 防刷 / 验证码、CDN 强缓存
 
 ---
