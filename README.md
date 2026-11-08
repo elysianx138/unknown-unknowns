@@ -2,6 +2,8 @@
 
 > **Unknown Unknowns** · 独立开发者的扫盲词典。不是知识库，不是教程。
 
+**在线版 → [elysianx138.github.io/unknown-unknowns](https://elysianx138.github.io/unknown-unknowns/)**（能搜、能标"没听过 / 说不清 / 会了"，标注存在你本地浏览器）
+
 **你不知道一个词，就不会去搜它；不搜它，AI 也帮不了你 —— 因为 AI 只回答你问得出的问题。**
 
 这个仓库只做一件事：把人从「不知道有这回事」推到「知道它叫 X」。深度不管，原理不讲，结论不给。
