@@ -20,60 +20,71 @@ const state = {
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; }
 }
-function save() {
-  localStorage.setItem(KEY, JSON.stringify(state.triage));
-}
+function save() { localStorage.setItem(KEY, JSON.stringify(state.triage)); }
 
-/* ---------- 解析 README 的 markdown 表格 ---------- */
+/* ---------- markdown 解析 ---------- */
 
 function esc(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;');
 }
 
-// 只处理两种行内标记：`code` 和 **bold**
+// 行内：`code`、**bold**、[text](url)
 function inline(s) {
   return esc(s)
     .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
+
+const FIELDS = {
+  '是什么': 'what',
+  '什么时候会遇到': 'when',
+  '不知道会怎样': 'cons',
+  '怎么查': 'search',
+  '关联': 'links',
+};
 
 function parse(markdown) {
   const out = [];
   let group = null;
+  let cur = null;
+
+  const flush = () => {
+    if (cur && cur.term && cur.what) out.push(cur);
+    cur = null;
+  };
+
   for (const raw of markdown.split('\n')) {
     const line = raw.trim();
 
     if (line.startsWith('## ')) {
+      flush();
       const m = line.slice(3).trim().match(/^(\d+)\s*[｜|]\s*(.+)$/);
       group = m ? { num: m[1], name: m[2].trim() } : null;
       continue;
     }
-    if (!group || !line.startsWith('|')) continue;
 
-    const cells = line.replace(/^\|/, '').replace(/\|$/, '').split('|').map(s => s.trim());
-    if (cells.length !== 6) continue;
-    if (cells[0] === '词' || /^:?-{2,}/.test(cells[0])) continue;
+    if (line.startsWith('### ')) {
+      flush();
+      if (group) cur = { g: group.num, gname: group.name, term: line.slice(4).trim() };
+      continue;
+    }
 
-    out.push({
-      g: group.num,
-      gname: group.name,
-      term: cells[0],
-      what: cells[1],
-      when: cells[2],
-      cons: cells[3],
-      search: cells[4],
-      links: cells[5],
-    });
+    if (!cur) continue;
+    const f = line.match(/^-\s+\*\*(.+?)\*\*[：:]\s*(.+)$/);
+    if (!f) continue;
+    const key = FIELDS[f[1].trim()];
+    if (key) cur[key] = f[2].trim();
   }
+  flush();
   return out;
 }
 
 /* ---------- 渲染 ---------- */
 
-function triageOf(t) {
-  return state.triage[t.term] || 0;
-}
+function triageOf(t) { return state.triage[t.term] || 0; }
 
 function matches(t) {
   const q = state.q.trim().toLowerCase();
@@ -86,9 +97,21 @@ function matches(t) {
   return q.split(/\s+/).filter(Boolean).every(k => hay.includes(k));
 }
 
+// "搜 `关键词` · [名字](url)" → 关键词码片 + 外链
+function howToSearch(raw) {
+  if (!raw) return '';
+  const link = raw.match(/\[([^\]]+)\]\((https?:[^)]+)\)/);
+  const code = raw.match(/`([^`]+)`/);
+  const kw = (code ? code[1] : raw.replace(/\[([^\]]+)\]\([^)]+\)/, '')).replace(/^搜\s*/, '').trim();
+  const a = link
+    ? ` <a class="doc" href="${esc(link[2])}" target="_blank" rel="noopener" title="${esc(link[1])}">资料 ↗</a>`
+    : '';
+  return (kw ? `<code class="copy" data-copy="${esc(kw)}" title="点击复制">${esc(kw)}</code>` : '') + a;
+}
+
 function cardHTML(t) {
   const s = triageOf(t);
-  const chips = t.links.split(/[、,，]/).map(x => x.trim()).filter(Boolean);
+  const chips = (t.links || '').split(/[、,，]/).map(x => x.trim()).filter(Boolean);
   return `
   <article class="card" data-s="${s}" data-term="${esc(t.term)}">
     <div class="card-head">
@@ -103,10 +126,10 @@ function cardHTML(t) {
       </div>
     </div>
     <dl class="rows">
-      <div class="row"><dt>撞上</dt><dd>${inline(t.when)}</dd></div>
-      <div class="row warn"><dt>不知道</dt><dd>${inline(t.cons)}</dd></div>
-      <div class="row"><dt>去哪查</dt><dd><code class="copy" data-copy="${esc(t.search.replace(/`/g, ''))}" title="点击复制">${inline(t.search)}</code></dd></div>
-      <div class="row"><dt>连着</dt><dd class="links">${chips.map(c =>
+      <div class="row"><dt>什么时候会遇到</dt><dd>${inline(t.when || '')}</dd></div>
+      <div class="row warn"><dt>不知道会怎样</dt><dd>${inline(t.cons || '')}</dd></div>
+      <div class="row"><dt>怎么查</dt><dd>${howToSearch(t.search)}</dd></div>
+      <div class="row"><dt>关联</dt><dd class="links">${chips.map(c =>
         `<span class="link-chip" data-jump="${esc(c)}">${esc(c)}</span>`).join('')}</dd></div>
     </dl>
   </article>`;
@@ -165,9 +188,8 @@ function updateSide() {
   }
   const nav = $('#groups');
   const names = [...new Map(state.terms.map(t => [t.g, t.gname])).entries()];
-  const all = state.group === 'all';
   nav.innerHTML = `
-    <button class="gbtn ${all ? 'active' : ''}" data-g="all">
+    <button class="gbtn ${state.group === 'all' ? 'active' : ''}" data-g="all">
       <span class="num">·</span><span>全部词</span>
       <span class="cnt">${marked}/${total}</span>
     </button>` +
@@ -217,7 +239,7 @@ document.addEventListener('click', (e) => {
 
   const cp = e.target.closest('.copy');
   if (cp) {
-    const text = cp.dataset.copy.replace(/`/g, '');
+    const text = cp.dataset.copy;
     navigator.clipboard?.writeText(text).then(
       () => toast('已复制：' + text),
       () => toast('复制失败，手动选中吧')
